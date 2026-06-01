@@ -32,17 +32,16 @@ bot.action('purchase_key', async (ctx) => {
     const rows = await doc.sheetsByTitle['Keys'].getRows();
     const keyRow = rows.find(r => r.get('Status') === 'Available');
     if (!keyRow) return ctx.reply('❌ No keys available.');
-    
     keyRow.set('Status', 'Sold');
     await keyRow.save();
-    ctx.reply(`✅ Key: ${keyRow.get('Key')}`);
-  } catch (e) { ctx.reply('Error...'); }
+    ctx.reply(`✅ Key mil gayi: ${keyRow.get('Key')}`);
+  } catch (e) { ctx.reply('Error: Bot busy hai.'); }
 });
 
-// 3. DEPOSIT (QR + SCREENSHOT)
+// 3. DEPOSIT & SCREENSHOT
 bot.action('deposit', (ctx) => {
-  ctx.replyWithPhoto('https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg', {
-    caption: '💰 Is QR par payment karein aur screenshot yahan bhejein.'
+  ctx.replyWithPhoto('https://your-qr-link.jpg', { // Yahan apna QR link daal
+    caption: '💰 Payment karein aur SS yahan bhejein.'
   });
 });
 
@@ -50,30 +49,34 @@ bot.on('photo', async (ctx) => {
   await ctx.telegram.sendPhoto(process.env.ADMIN_ID, ctx.message.photo[0].file_id, {
     caption: `⚠️ New Deposit from ${ctx.from.first_name}\nID: ${ctx.from.id}`
   });
-  ctx.reply('✅ Screenshot recieved! Admin check kar raha hai.');
+  ctx.reply('✅ Screenshot admin ko bhej diya hai.');
 });
 
-// 4. PROTECTED ADMIN PANEL
+// 4. ADMIN PANEL (Protected)
 bot.action('admin_panel', async (ctx) => {
-  if (ctx.from.id.toString() !== process.env.ADMIN_ID) {
-    return ctx.answerCbQuery('❌ Access Denied!');
-  }
-  ctx.reply('👑 Admin Panel', Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Add Key', 'admin_add')]
+  if (ctx.from.id.toString() !== process.env.ADMIN_ID) return ctx.answerCbQuery('❌ Access Denied!');
+  ctx.reply('👑 Admin Panel:', Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Add Key', 'admin_add'), Markup.button.callback('📢 Broadcast', 'admin_broad')]
   ]));
 });
 
-// ADMIN ADD KEY (Simple way)
-bot.action('admin_add', (ctx) => {
-  ctx.reply('Format: /addkey KEYNAME PRICE\nExample: /addkey GOLD100 100');
-});
-
+// ADMIN ADD KEY
+bot.action('admin_add', (ctx) => ctx.reply('Type: /addkey KEYNAME PRICE'));
 bot.command('addkey', async (ctx) => {
   if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
   const args = ctx.message.text.split(' ');
   const doc = await getDoc();
   await doc.sheetsByTitle['Keys'].addRow({ Key: args[1], Status: 'Available', Price: args[2] });
-  ctx.reply('✅ Key added successfully!');
+  ctx.reply('✅ Key added!');
+});
+
+// BROADCAST
+bot.action('admin_broad', (ctx) => ctx.reply('Type: /broadcast MESSAGE'));
+bot.command('broadcast', async (ctx) => {
+  if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
+  const msg = ctx.message.text.replace('/broadcast ', '');
+  // Yahan loop chalakar sabko msg bhej sakte ho (abhi basic rakha hai)
+  ctx.reply('📢 Broadcast command receive hui!');
 });
 
 bot.launch();
