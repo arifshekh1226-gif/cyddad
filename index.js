@@ -2,8 +2,12 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
+const { setupDeposit } = require('./deposit'); // <-- Nayi file import ki
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+
+// Deposit logic ko connect kiya
+setupDeposit(bot); 
 
 async function getDoc() {
   const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
@@ -13,7 +17,6 @@ async function getDoc() {
   return doc;
 }
 
-// 1. START MENU
 bot.start((ctx) => {
   ctx.reply(`*🛒 GAMING KEY SHOP*\n\n👋 Welcome ${ctx.from.first_name}`, {
     parse_mode: 'Markdown',
@@ -25,7 +28,7 @@ bot.start((ctx) => {
   });
 });
 
-// 2. PURCHASE LOGIC
+// Purchase Logic
 bot.action('purchase_key', async (ctx) => {
   try {
     const doc = await getDoc();
@@ -38,21 +41,7 @@ bot.action('purchase_key', async (ctx) => {
   } catch (e) { ctx.reply('Error: Bot busy hai.'); }
 });
 
-// 3. DEPOSIT & SCREENSHOT
-bot.action('deposit', (ctx) => {
-  ctx.replyWithPhoto('https://your-qr-link.jpg', { // Yahan apna QR link daal
-    caption: '💰 Payment karein aur SS yahan bhejein.'
-  });
-});
-
-bot.on('photo', async (ctx) => {
-  await ctx.telegram.sendPhoto(process.env.ADMIN_ID, ctx.message.photo[0].file_id, {
-    caption: `⚠️ New Deposit from ${ctx.from.first_name}\nID: ${ctx.from.id}`
-  });
-  ctx.reply('✅ Screenshot admin ko bhej diya hai.');
-});
-
-// 4. ADMIN PANEL (Protected)
+// Admin Panel Logic
 bot.action('admin_panel', async (ctx) => {
   if (ctx.from.id.toString() !== process.env.ADMIN_ID) return ctx.answerCbQuery('❌ Access Denied!');
   ctx.reply('👑 Admin Panel:', Markup.inlineKeyboard([
@@ -60,7 +49,6 @@ bot.action('admin_panel', async (ctx) => {
   ]));
 });
 
-// ADMIN ADD KEY
 bot.action('admin_add', (ctx) => ctx.reply('Type: /addkey KEYNAME PRICE'));
 bot.command('addkey', async (ctx) => {
   if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
@@ -70,12 +58,8 @@ bot.command('addkey', async (ctx) => {
   ctx.reply('✅ Key added!');
 });
 
-// BROADCAST
-bot.action('admin_broad', (ctx) => ctx.reply('Type: /broadcast MESSAGE'));
 bot.command('broadcast', async (ctx) => {
   if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
-  const msg = ctx.message.text.replace('/broadcast ', '');
-  // Yahan loop chalakar sabko msg bhej sakte ho (abhi basic rakha hai)
   ctx.reply('📢 Broadcast command receive hui!');
 });
 
