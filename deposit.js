@@ -1,15 +1,11 @@
 const { Markup } = require('telegraf');
-function setupDeposit(bot) {
-  bot.action('deposit', (ctx) => {
-    ctx.answerCbQuery();
-    ctx.replyWithPhoto('https://i.postimg.cc/k47v0N0R/qr-code.png', { caption: '💰 QR par payment karein.' });
-  });
-  bot.on('photo', async (ctx) => {
-    await ctx.telegram.sendPhoto(process.env.ADMIN_ID, ctx.message.photo[0].file_id, {
-      caption: `⚠️ New Deposit\nUser: ${ctx.from.first_name}\nID: ${ctx.from.id}`,
-      ...Markup.inlineKeyboard([[Markup.button.callback('✅ Approve Custom', `approve_custom_${ctx.from.id}`)]])
+const { getDoc } = require('./database');
+
+module.exports = {
+  setup: (bot) => {
+    bot.action('dep_inr', (ctx) => {
+      ctx.replyWithPhoto('https://i.postimg.cc/k47v0N0R/qr-code.png', { caption: '💰 Payment karein aur SS bhejein.' });
     });
-    ctx.reply('✅ Screenshot bhej diya hai.');
-  });
-}
-module.exports = { setupDeposit };
+    // Yahan photo upload handle karne ka logic...
+  }
+};
