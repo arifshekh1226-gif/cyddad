@@ -1,41 +1,19 @@
 const { Telegraf, Markup } = require('telegraf');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { JWT } = require('google-auth-library');
+// Baad mein hum baaki files yahan import karenge: const shop = require('./shop');
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-async function getDoc() {
-  const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-  const serviceAccountAuth = new JWT({
-    email: creds.client_email,
-    key: creds.private_key,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
-  const doc = new GoogleSpreadsheet(process.env.SHEET_ID, serviceAccountAuth);
-  await doc.loadInfo();
-  return doc;
-}
-
 bot.start((ctx) => {
-  ctx.reply('Bot chal raha hai! Chuno:', Markup.inlineKeyboard([
-    [Markup.button.callback('💰 Balance Check', 'account')]
-  ]));
-});
-
-bot.action('account', async (ctx) => {
-  try {
-    const doc = await getDoc();
-    const sheet = doc.sheetsByTitle['Users'];
-    await sheet.loadHeaderRow();
-    const rows = await sheet.getRows();
-    const user = rows.find(r => r.get('TelegramID') == ctx.from.id);
-    const bal = user ? user.get('Balance') : "0";
-    ctx.answerCbQuery();
-    ctx.reply(`Aapka Balance: ₹${bal}`);
-  } catch (err) {
-    console.log(err);
-    ctx.reply('Error: Sheet se connection nahi hua.');
-  }
+  ctx.replyWithPhoto('https://telegra.ph/file/your-image-link.jpg', { // Yahan apni image ka link daal
+    caption: `*🛒 GAMING KEY SHOP*\n\n🔑 Premium Gaming Keys Marketplace\n✅ Instant Delivery of your order.\n🥇 Trusted Automated Key Distribution\n\n👋 Welcome ${ctx.from.first_name}\n👤 ${ctx.from.id}`,
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([
+      [Markup.button.callback('• Purchase Key •', 'purchase_key')],
+      [Markup.button.callback('• Account •', 'account'), Markup.button.callback('• History •', 'history')],
+      [Markup.button.callback('• Deposit Fund (₹) •', 'dep_inr'), Markup.button.callback('• Deposit Fund ($) •', 'dep_usd')],
+      [Markup.button.callback('• Feedback •', 'feedback')]
+    ])
+  });
 });
 
 bot.launch();
