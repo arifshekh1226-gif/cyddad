@@ -2,7 +2,10 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
-const fs = require('fs');
+
+// Apni files ko yahan import karo
+const { setupDeposit } = require('./deposit');
+const { setupAdmin } = require('./admin');
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
@@ -14,13 +17,9 @@ async function getDoc() {
   return doc;
 }
 
-// PLUGIN LOADER: Ye loop har file ko khud load kar lega
-const pluginFiles = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'));
-for (const file of pluginFiles) {
-  const plugin = require(`./plugins/${file}`);
-  plugin.setup(bot, getDoc); 
-  console.log(`Loaded plugin: ${file}`);
-}
+// Features load karo
+setupDeposit(bot);
+setupAdmin(bot, getDoc);
 
 bot.start((ctx) => {
   ctx.reply('🛒 MENU:', Markup.inlineKeyboard([
