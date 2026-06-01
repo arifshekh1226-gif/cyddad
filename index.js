@@ -1,5 +1,6 @@
 const { Telegraf, Markup } = require('telegraf');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
+const { JWT } = require('google-auth-library');
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const doc = new GoogleSpreadsheet(process.env.SHEET_ID);
@@ -7,10 +8,17 @@ const doc = new GoogleSpreadsheet(process.env.SHEET_ID);
 // Google Sheet connection setup
 async function initSheet() {
   const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-  await doc.useServiceAccountAuth({
-    client_email: creds.client_email,
-    private_key: creds.private_key,
+  
+  // Naya authentication method
+  const serviceAccountAuth = new JWT({
+    email: creds.client_email,
+    key: creds.private_key,
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+    ],
   });
+
+  doc.useAuth(serviceAccountAuth);
   await doc.loadInfo();
 }
 
@@ -29,8 +37,8 @@ bot.action('account', async (ctx) => {
     await initSheet();
     const sheet = doc.sheetsByTitle['Users'];
     const rows = await sheet.getRows();
-    const user = rows.find(r => r.TelegramID == ctx.from.id);
-    const bal = user ? user.Balance : "0";
+    const user = rows.find(r => r.get('TelegramID') == ctx.from.id);
+    const bal = user ? user.get('Balance') : "0";
     ctx.answerCbQuery();
     ctx.reply(`Aapka Balance: ₹${bal}`);
   } catch (err) {
