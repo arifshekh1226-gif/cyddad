@@ -39,4 +39,3 @@ bot.action('account', async (ctx) => {
 });
 
 bot.launch();
-console.log("Bot update ho gaya hai!");
