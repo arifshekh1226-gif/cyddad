@@ -1,12 +1,36 @@
-// index.js mein balance logic ko aise update karo
+const { Telegraf, Markup } = require('telegraf');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+const { JWT } = require('google-auth-library');
+
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+
+// Database connection setup
+async function getDoc() {
+  const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const serviceAccountAuth = new JWT({
+    email: creds.client_email,
+    key: creds.private_key,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+  const doc = new GoogleSpreadsheet(process.env.SHEET_ID, serviceAccountAuth);
+  await doc.loadInfo();
+  return doc;
+}
+
+bot.start((ctx) => {
+  ctx.reply('Welcome! Chuno kya karna hai:', Markup.inlineKeyboard([
+    [Markup.button.callback('💰 Balance Check', 'account')]
+  ]));
+});
+
 bot.action('account', async (ctx) => {
   try {
     const doc = await getDoc();
     const sheet = doc.sheetsByTitle['Users'];
-    await sheet.loadHeaderRow(); // Ye line zaroori hai
+    await sheet.loadHeaderRow(); 
     const rows = await sheet.getRows();
     
-    // Yahan bot check karega ki kis row mein user ki ID hai
+    // Yahan row mein check ho raha hai
     const user = rows.find(r => r.get('TelegramID') == ctx.from.id);
     const bal = user ? user.get('Balance') : "0";
     
@@ -17,3 +41,6 @@ bot.action('account', async (ctx) => {
     ctx.reply('Error: Database load nahi ho raha.');
   }
 });
+
+bot.launch();
+console.log("Bot is running perfectly!");
