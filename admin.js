@@ -5,7 +5,6 @@ module.exports = {
     
     // 1. Command: /addbalance <userID> <amount>
     bot.command('addbalance', async (ctx) => {
-      // Check admin
       if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
 
       const args = ctx.message.text.split(' ');
@@ -18,18 +17,25 @@ module.exports = {
         const doc = await getDoc();
         const usersSheet = doc.sheetsByTitle['Users'];
         const rows = await usersSheet.getRows();
-        const user = rows.find(r => r.get('TelegramID') == userId);
+        
+        let user = rows.find(r => r.get('TelegramID') == userId);
 
         if (user) {
-          const newBalance = parseInt(user.get('Balance') || 0) + amount;
+          const currentBalance = parseInt(user.get('Balance') || 0);
+          const newBalance = currentBalance + amount;
           user.set('Balance', newBalance);
           await user.save();
-          ctx.reply(`✅ Success!\n👤 User: ${userId}\n💰 Added: ₹${amount}\n📊 New Balance: ₹${newBalance}`);
+          ctx.reply(`✅ Balance Updated!\n👤 User: ${userId}\n💰 Added: ₹${amount}\n📊 New Balance: ₹${newBalance}`);
         } else {
-          ctx.reply('❌ User sheet mein nahi mila!');
+          await usersSheet.addRow({
+            TelegramID: userId,
+            Balance: amount
+          });
+          ctx.reply(`✅ New User Added!\n👤 User: ${userId}\n💰 Initial Balance: ₹${amount}`);
         }
       } catch (err) {
-        ctx.reply('❌ Database error.');
+        console.error(err);
+        ctx.reply('❌ Database error: Check if "Users" sheet and columns exist.');
       }
     });
 
@@ -48,6 +54,7 @@ module.exports = {
         const doc = await getDoc();
         const keysSheet = doc.sheetsByTitle['Keys'];
         
+        // Nayi key add karo
         await keysSheet.addRow({
           Product: product,
           Days: days,
@@ -57,7 +64,8 @@ module.exports = {
 
         ctx.reply(`✅ Key Added Successfully!\n📦 Product: ${product}\n⏳ Days: ${days}\n🔑 Key: \`${key}\``, { parse_mode: 'Markdown' });
       } catch (err) {
-        ctx.reply('❌ Error adding key.');
+        console.error(err);
+        ctx.reply('❌ Error adding key: Check if "Keys" sheet and columns exist.');
       }
     });
   }
