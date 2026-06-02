@@ -1,48 +1,72 @@
+const { getDoc } = require('./database');
 const { Markup } = require('telegraf');
 
 module.exports = {
   setup: (bot) => {
-    // 1. Menu dikhao (FLUORITE vs MIGUL)
-    bot.action('shop_menu', (ctx) => {
-      ctx.editMessageText('🛒 *SELECT PRODUCT:*', {
+    // 1. Product Selection
+    bot.action('sel_fluorite', (ctx) => {
+      ctx.editMessageText('💎 *FLUORITE IOS - Select Days:*', {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('💎 FLUORITE IOS', 'sel_fluorite')],
-          [Markup.button.callback('🔥 MIGUL IOS', 'sel_migul')]
+          [Markup.button.callback('3 Days - ₹100', 'confirm_FLUORITE_3')],
+          [Markup.button.callback('7 Days - ₹200', 'confirm_FLUORITE_7')],
+          [Markup.button.callback('30 Days - ₹500', 'confirm_FLUORITE_30')]
         ])
       });
     });
 
-    // 2. Product select karte hi Days dikhao
-    bot.action(['sel_fluorite', 'sel_migul'], (ctx) => {
-      const product = ctx.match[0] === 'sel_fluorite' ? 'FLUORITE IOS' : 'MIGUL IOS';
-      ctx.editMessageText(`📦 *${product}*\nSelect Days:`, {
+    bot.action('sel_migul', (ctx) => {
+      ctx.editMessageText('🔥 *MIGUL IOS - Select Days:*', {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('3 Days - ₹100', `confirm_${product}_3`)],
-          [Markup.button.callback('7 Days - ₹200', `confirm_${product}_7`)]
+          [Markup.button.callback('1 Day - ₹50', 'confirm_MIGUL_1')],
+          [Markup.button.callback('5 Days - ₹150', 'confirm_MIGUL_5')],
+          [Markup.button.callback('10 Days - ₹250', 'confirm_MIGUL_10')]
         ])
       });
     });
 
-    // 3. Confirm Purchase (Balance check aur Key generation)
+    // 2. Purchase Confirmation Logic
     bot.action(/^confirm_(.*)_(.*)$/, async (ctx) => {
-      const match = ctx.match; // [full, product, days]
-      const product = match[1];
-      const days = match[2];
-
-      // Yahan Database check karo (Balance kaatne ke liye)
-      // Pseudo-code logic:
-      // const user = await getBalance(ctx.from.id);
-      // if (user.balance >= price) {
-      //    const key = generateKey();
-      //    ctx.editMessageText(`✅ Success! Key: ${key}`);
-      // } else {
-      //    ctx.reply('❌ Insufficient balance!');
-      // }
+      const product = ctx.match[1]; // FLUORITE / MIGUL
+      const days = ctx.match[2];    // Din
       
-      ctx.answerCbQuery('Processing...');
-      ctx.reply(`✅ Confirm Purchase: ${product} for ${days} days?\n\nBalance cut ho jayega aur key mil jayegi!`);
+      // Price Mapping (yahan apne hisaab se price set kar le)
+      const prices = {
+        'FLUORITE': { '3': 100, '7': 200, '30': 500 },
+        'MIGUL': { '1': 50, '5': 150, '10': 250 }
+      };
+      
+      const price = prices[product][days];
+
+      try {
+        const doc = await getDoc();
+        const usersSheet = doc.sheetsByTitle['Users'];
+        const keysSheet = doc.sheetsByTitle['Keys'];
+        
+        const userRows = await usersSheet.getRows();
+        const user = userRows.find(r => r.get('TelegramID') == ctx.from.id);
+        
+        if (!user || user.get('Balance') < price) return ctx.reply('❌ Balance kam hai!');
+
+        const keyRows = await keysSheet.getRows();
+        const keyRow = keyRows.find(r => r.get('Product') === product && r.get('Status') !== 'Used');
+
+        if (!keyRow) return ctx.reply('❌ Stock khatam ho gaya hai!');
+
+        // Update Balance
+        user.set('Balance', parseInt(user.get('Balance')) - price);
+        await user.save();
+
+        // Update Key
+        keyRow.set('Status', 'Used');
+        keyRow.set('UsedBy', ctx.from.id);
+        await keyRow.save();
+
+        ctx.editMessageText(`✅ *SUCCESS!*\n\n🔑 Key: \`${keyRow.get('Key')}\`\n📅 Product: ${product} (${days} Days)\n💰 Balance Deducted: ₹${price}`);
+      } catch (err) {
+        ctx.reply('❌ Error: ' + err.message);
+      }
     });
   }
 };
