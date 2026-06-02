@@ -29,7 +29,7 @@ module.exports = {
       const buttons = productPrices.map(r => [
         Markup.button.callback(`${r.get('Days')} Days - ₹${r.get('Price')}`, `confirm_${product}_${r.get('Days')}`)
       ]);
-      buttons.push([Markup.button.callback('⬅️ Back to Shop', 'shop_menu')]);
+      buttons.push([Markup.button.callback('⬅️ Back to Shop', 'main_menu')]);
 
       ctx.editMessageText(`📦 *${product} IOS*\nSelect Days:`, {
         parse_mode: 'Markdown',
