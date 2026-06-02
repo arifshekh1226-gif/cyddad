@@ -3,7 +3,7 @@ const { Markup } = require('telegraf');
 module.exports = {
   setup: (bot) => {
     // Deposit Menu
-    bot.action('deposit_menu', (ctx) => {
+    bot.action('dep_inr', (ctx) => {
       ctx.editMessageText('💰 *DEPOSIT BALANCE*\n\nUPI: `your_upi@oksbi`\n\nPayment ka screenshot yahan bhejein.', {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([ [Markup.button.callback('⬅️ Back', 'main_menu')] ])
