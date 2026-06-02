@@ -1,32 +1,30 @@
-// Man lo tumne admin ID kisi config file ya constant mein rakha hai
-const ADMIN_ID = process.env.ADMIN_ID || '7918372543'; // Yahan apna ID dalna
+const { Markup } = require('telegraf');
 
 module.exports = {
   setup: (bot) => {
-    // 1. Deposit Menu
+    // Deposit Menu
     bot.action('deposit_menu', (ctx) => {
-      ctx.editMessageText(
-        '💰 *DEPOSIT BALANCE*\n\n' +
-        'UPI ID: `example@upi`\n\n' +
-        'Payment karne ke baad screenshot yahan send karein.', 
-        {
-          parse_mode: 'Markdown',
-          ...Markup.inlineKeyboard([
-            [Markup.button.callback('⬅️ Back', 'main_menu')]
-          ])
-        }
-      );
+      ctx.editMessageText('💰 *DEPOSIT BALANCE*\n\nUPI: `your_upi@oksbi`\n\nPayment ka screenshot yahan bhejein.', {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([ [Markup.button.callback('⬅️ Back', 'main_menu')] ])
+      });
     });
 
-    // 2. Screenshot handle karna
+    // Handle Photos (Screenshot)
     bot.on('photo', async (ctx) => {
-      // User ko confirmation
-      ctx.reply('✅ Screenshot admin ko bhej diya gaya hai. Wait for verification!');
-      
-      // Admin ko screenshot aur details forward karna
-      await ctx.telegram.sendPhoto(ADMIN_ID, ctx.message.photo[ctx.message.photo.length - 1].file_id, {
-        caption: `🔔 *New Deposit*\nFrom: @${ctx.from.username || 'NoUsername'} (${ctx.from.id})`
-      });
+      try {
+        const adminId = '7918372543'; // Yahan apni ID daal
+        const photo = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+        
+        await ctx.telegram.sendPhoto(adminId, photo, {
+          caption: `🔔 *New Payment Request*\nUser: @${ctx.from.username || 'N/A'}\nID: ${ctx.from.id}`
+        });
+        
+        ctx.reply('✅ Screenshot admin ko bhej diya gaya hai!');
+      } catch (err) {
+        console.error("Deposit Error:", err);
+        ctx.reply('❌ Error: Payment bhejte waqt problem aayi.');
+      }
     });
   }
 };
