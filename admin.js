@@ -54,7 +54,6 @@ module.exports = {
         const doc = await getDoc();
         const keysSheet = doc.sheetsByTitle['Keys'];
         
-        // Nayi key add karo
         await keysSheet.addRow({
           Product: product,
           Days: days,
@@ -66,6 +65,39 @@ module.exports = {
       } catch (err) {
         console.error(err);
         ctx.reply('❌ Error adding key: Check if "Keys" sheet and columns exist.');
+      }
+    });
+
+    // 3. Command: /broadcast <message>
+    bot.command('broadcast', async (ctx) => {
+      if (ctx.from.id.toString() !== process.env.ADMIN_ID) return;
+
+      const message = ctx.message.text.split('/broadcast ')[1];
+      if (!message) return ctx.reply('❌ Format: `/broadcast <message>`', { parse_mode: 'Markdown' });
+
+      try {
+        const doc = await getDoc();
+        const usersSheet = doc.sheetsByTitle['Users'];
+        const rows = await usersSheet.getRows();
+        
+        ctx.reply(`📢 Broadcast shuru ho gaya hai... Total users: ${rows.length}`);
+
+        let successCount = 0;
+        for (const row of rows) {
+          const userId = row.get('TelegramID');
+          try {
+            await bot.telegram.sendMessage(userId, message, { parse_mode: 'Markdown' });
+            successCount++;
+            // Chhota delay taaki Telegram ban na kare
+            await new Promise(resolve => setTimeout(resolve, 100)); 
+          } catch (err) {
+            console.log(`Failed to send to ${userId}`);
+          }
+        }
+
+        ctx.reply(`✅ Broadcast complete! Total users reached: ${successCount}`);
+      } catch (err) {
+        ctx.reply('❌ Broadcast failed: ' + err.message);
       }
     });
   }
