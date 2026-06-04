@@ -4,27 +4,27 @@ module.exports = {
   setup: (bot) => {
     const isAdmin = (ctx) => ctx.from.id.toString() === process.env.ADMIN_ID;
 
-    // --- 1. PRODUCT MANAGEMENT ---
+    // --- 1. PRODUCT MANAGEMENT (Sahi Columns ke saath) ---
     bot.command('addproduct', async (ctx) => {
       if (!isAdmin(ctx)) return;
       const data = ctx.message.text.split(' ').slice(1).join(' ');
-      if (!data) return ctx.reply('Format: `/addproduct ID|Name|Price`', { parse_mode: 'Markdown' });
-      const [id, name, price] = data.split('|');
+      if (!data) return ctx.reply('Format: `/addproduct Product|Days|Price`', { parse_mode: 'Markdown' });
+      const [product, days, price] = data.split('|');
       try {
         const doc = await getDoc();
-        await doc.sheetsByTitle['Products'].addRow({ ID: id, Name: name, Price: price });
-        ctx.reply(`✅ Product '${name}' add ho gaya!`);
+        await doc.sheetsByTitle['Products'].addRow({ Product: product, Days: days, Price: price });
+        ctx.reply(`✅ Product '${product}' add ho gaya!`);
       } catch (err) { ctx.reply('❌ Error: ' + err.message); }
     });
 
     bot.command('delproduct', async (ctx) => {
       if (!isAdmin(ctx)) return;
-      const id = ctx.message.text.split(' ')[1];
+      const name = ctx.message.text.split(' ')[1];
       try {
         const doc = await getDoc();
         const rows = await doc.sheetsByTitle['Products'].getRows();
-        const row = rows.find(r => r.get('ID') == id);
-        if (row) { await row.delete(); ctx.reply(`✅ Product ${id} delete ho gaya.`); }
+        const row = rows.find(r => r.get('Product') == name);
+        if (row) { await row.delete(); ctx.reply(`✅ Product ${name} delete ho gaya.`); }
         else ctx.reply('❌ Product nahi mila.');
       } catch (err) { ctx.reply('❌ Error: ' + err.message); }
     });
@@ -32,14 +32,18 @@ module.exports = {
     bot.command('editproduct', async (ctx) => {
       if (!isAdmin(ctx)) return;
       const data = ctx.message.text.split(' ').slice(1).join(' ');
-      if (!data) return ctx.reply('Format: `/editproduct ID|NewName|NewPrice`', { parse_mode: 'Markdown' });
-      const [id, newName, newPrice] = data.split('|');
+      if (!data) return ctx.reply('Format: `/editproduct Product|NewDays|NewPrice`', { parse_mode: 'Markdown' });
+      const [product, newDays, newPrice] = data.split('|');
       try {
         const doc = await getDoc();
         const rows = await doc.sheetsByTitle['Products'].getRows();
-        const row = rows.find(r => r.get('ID') == id);
-        if (row) { row.set('Name', newName); row.set('Price', newPrice); await row.save(); ctx.reply(`✅ Product ${id} update ho gaya!`); }
-        else ctx.reply('❌ Product nahi mila.');
+        const row = rows.find(r => r.get('Product') == product);
+        if (row) { 
+          row.set('Days', newDays); 
+          row.set('Price', newPrice); 
+          await row.save(); 
+          ctx.reply(`✅ Product ${product} update ho gaya!`); 
+        } else ctx.reply('❌ Product nahi mila.');
       } catch (err) { ctx.reply('❌ Error: ' + err.message); }
     });
 
