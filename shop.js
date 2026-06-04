@@ -4,13 +4,12 @@ const { Markup } = require('telegraf');
 module.exports = {
   setup: (bot) => {
     
-    // 1. Dynamic Shop Menu (Sheet se data uthaega)
+    // 1. Dynamic Shop Menu
     bot.action('shop_menu', async (ctx) => {
       try {
         const doc = await getDoc();
         const rows = await doc.sheetsByTitle['Products'].getRows();
         
-        // Sirf unique products list karo
         const uniqueProducts = [...new Set(rows.map(r => r.get('Product')))];
         const buttons = uniqueProducts.map(p => [Markup.button.callback(p, `sel_${p}`)]);
         buttons.push([Markup.button.callback('⬅️ Back', 'main_menu')]);
@@ -40,7 +39,7 @@ module.exports = {
       });
     });
 
-    // 3. Purchase (Same logic)
+    // 3. Purchase Confirmation & Sales Proof
     bot.action(/^confirm_(.*)_(.*)$/, async (ctx) => {
       const product = ctx.match[1];
       const days = ctx.match[2];
@@ -68,6 +67,36 @@ module.exports = {
         await keyRow.save();
 
         ctx.editMessageText(`✅ *SUCCESS!*\n\n🔑 Key: \`${keyRow.get('Key')}\`\n💰 Balance: ₹${user.get('Balance')}`);
+
+        // TRANSACTION PROOF AUTOMATION
+        try {
+          const salesChannelId = '@CY_SHOP_SALES'; 
+          const salesMessage = `
+💼 *TRANSACTION PROOF*
+━━━━━━━━━━━━━━
+✅ *NEW SALE COMPLETED*
+
+👤 *Customer Details*
+• Name: ${ctx.from.first_name}
+• ID: \`${ctx.from.id}\`
+
+📦 *Order Details*
+• Game: ${product}
+• Pack: ${product}
+• Duration: ${days} Days
+• Amount: ₹${price}
+• Type: 👤 User
+• Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+
+━━━━━━━━━━━━━━
+🤖 *Powered by @CY_SHOP_BOT*
+*Thank you for your purchase!*`;
+
+          await bot.telegram.sendMessage(salesChannelId, salesMessage, { parse_mode: 'Markdown' });
+        } catch (e) {
+          console.log('Channel post error:', e);
+        }
+
       } catch (err) { ctx.reply('❌ Error: ' + err.message); }
     });
   }
