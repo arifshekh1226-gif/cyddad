@@ -22,7 +22,7 @@ account.setup(bot);
 admin.setup(bot);
 feedback.setup(bot);
 
-// Helper function for Main Menu to avoid code repetition
+// Main Menu helper
 const getMainMenu = () => {
     return {
         text: '🛒 *CY SHOP - MAIN MENU*\n\nWelcome back! Choose an option below to get started:',
@@ -45,15 +45,16 @@ bot.action('main_menu', async (ctx) => {
         const menu = getMainMenu();
         await ctx.editMessageText(menu.text, menu.extra);
     } catch (err) {
-        if (err.description !== 'Bad Request: there is no text in the message to edit') {
+        // Sirf wahi error ignore karo jo expected hai
+        if (err.description && !err.description.includes('there is no text in the message to edit')) {
             console.error('Error in main_menu:', err);
         }
     }
 });
 
-// Start Command
+// Start Command - FIXED TEXT WITHOUT SPECIAL SYMBOLS
 bot.start((ctx) => {
-    const welcomeText = `👋 *Hello ${ctx.from.first_name}!*
+    const welcomeText = `👋 *Hello ${ctx.from.first_name.replace(/[*_`]/g, '')}!*
 
 Welcome to *CY SHOP* 🎮
 The most reliable and fastest marketplace for Premium Gaming Keys.
@@ -75,19 +76,18 @@ Click below to explore our products!`;
     });
 });
 
-// Global Error Handler for bot crashes
+// Global Error Handler
 bot.catch((err, ctx) => {
-    console.error(`❌ Error for ${ctx.updateType}:`, err);
+    console.error(`❌ Error in ${ctx.updateType}:`, err);
 });
 
 // Launch Bot
 bot.launch()
-    .then(() => console.log('✅ Bot is running successfully...'))
+    .then(() => console.log('✅ Bot is running...'))
     .catch((err) => {
-        console.error('❌ Failed to launch bot:', err);
-        process.exit(1);
+        console.error('❌ Failed to launch:', err);
     });
 
-// Enable graceful stop
+// Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
