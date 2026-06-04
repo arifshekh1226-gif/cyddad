@@ -22,6 +22,30 @@ account.setup(bot);
 admin.setup(bot);
 feedback.setup(bot);
 
+// --- FORCE JOIN MIDDLEWARE ---
+bot.use(async (ctx, next) => {
+    const channelId = '-1002940703518'; 
+    try {
+        if (ctx.from && !ctx.callbackQuery?.data?.includes('admin')) {
+            const chatMember = await ctx.telegram.getChatMember(channelId, ctx.from.id);
+            const status = chatMember.status;
+            if (status === 'left' || status === 'kicked') {
+                return ctx.reply('❌ *ACCESS DENIED*\n\nBot use karne ke liye pehle hamara channel join karein:', {
+                    parse_mode: 'Markdown',
+                    ...Markup.inlineKeyboard([
+                        [Markup.button.url('📢 Join Channel', 'https://t.me/c/2940703518/1')],
+                        [Markup.button.callback('🔄 Check Status', 'start')]
+                    ])
+                });
+            }
+        }
+        return next();
+    } catch (err) {
+        console.log('Channel check error:', err);
+        return next();
+    }
+});
+
 // Main Menu helper
 const getMainMenu = () => {
     return {
@@ -45,14 +69,13 @@ bot.action('main_menu', async (ctx) => {
         const menu = getMainMenu();
         await ctx.editMessageText(menu.text, menu.extra);
     } catch (err) {
-        // Sirf wahi error ignore karo jo expected hai
         if (err.description && !err.description.includes('there is no text in the message to edit')) {
             console.error('Error in main_menu:', err);
         }
     }
 });
 
-// Start Command - FIXED TEXT WITHOUT SPECIAL SYMBOLS
+// Start Command
 bot.start((ctx) => {
     const welcomeText = `👋 *Hello ${ctx.from.first_name.replace(/[*_`]/g, '')}!*
 
