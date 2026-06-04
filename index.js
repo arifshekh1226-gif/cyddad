@@ -24,34 +24,71 @@ feedback.setup(bot);
 
 // --- FORCE JOIN MIDDLEWARE ---
 bot.use(async (ctx, next) => {
-    // Channel ID aur Link
     const channelId = '-1002940703518'; 
     const channelLink = 'https://t.me/CY_SHOP_SALES';
 
     try {
-        // Sirf un users ke liye jo channel ke admin nahi hain
         if (ctx.from && !ctx.callbackQuery?.data?.startsWith('admin_')) {
             const chatMember = await ctx.telegram.getChatMember(channelId, ctx.from.id);
             const status = chatMember.status;
 
             if (status === 'left' || status === 'kicked') {
+                // Agar user ne "Check Status" dabaya hai, toh purana message hata do
+                if (ctx.callbackQuery) {
+                    try { await ctx.deleteMessage(); } catch (e) {}
+                }
+
                 return ctx.reply('❌ *ACCESS DENIED*\n\nBot use karne ke liye pehle hamara channel join karein:', {
                     parse_mode: 'Markdown',
                     ...Markup.inlineKeyboard([
                         [Markup.button.url('📢 Join Channel', channelLink)],
-                        [Markup.button.callback('🔄 Check Status', 'start')]
+                        [Markup.button.callback('🔄 Check Status', 'start_check')]
                     ])
                 });
             }
         }
         return next();
     } catch (err) {
-        console.log('Channel check error (Bot shayad Admin nahi hai):', err);
+        console.log('Channel check error:', err);
         return next();
     }
 });
 
-// Main Menu helper
+// Helper for Start Message
+const sendWelcome = (ctx) => {
+    const welcomeText = `👋 *Hello ${ctx.from.first_name.replace(/[*_`]/g, '')}!*
+
+Welcome to *CY SHOP* 🎮
+The most reliable and fastest marketplace for Premium Gaming Keys.
+
+🔹 *Instant Delivery*
+🔹 *24/7 Automated Service*
+🔹 *Best Market Prices*
+
+Click below to explore our products!`;
+
+    return ctx.reply(welcomeText, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([
+            [Markup.button.callback('• Purchase Key •', 'shop_menu')],
+            [Markup.button.callback('• Account •', 'acc_menu'), Markup.button.callback('• History •', 'hist_menu')],
+            [Markup.button.callback('• Deposit Fund (₹) •', 'dep_inr'), Markup.button.callback('• Deposit Fund ($) •', 'dep_usd')],
+            [Markup.button.callback('• Feedback •', 'feed_menu')]
+        ])
+    });
+};
+
+// Check Status Action
+bot.action('start_check', async (ctx) => {
+    await ctx.answerCbQuery();
+    await ctx.deleteMessage(); 
+    sendWelcome(ctx);
+});
+
+// Start Command
+bot.start((ctx) => sendWelcome(ctx));
+
+// Main Menu Helper
 const getMainMenu = () => {
     return {
         text: '🛒 *CY SHOP - MAIN MENU*\n\nWelcome back! Choose an option below to get started:',
@@ -67,7 +104,6 @@ const getMainMenu = () => {
     };
 };
 
-// Main Menu Action
 bot.action('main_menu', async (ctx) => {
     try {
         await ctx.answerCbQuery();
@@ -80,42 +116,16 @@ bot.action('main_menu', async (ctx) => {
     }
 });
 
-// Start Command
-bot.start((ctx) => {
-    const welcomeText = `👋 *Hello ${ctx.from.first_name.replace(/[*_`]/g, '')}!*
-
-Welcome to *CY SHOP* 🎮
-The most reliable and fastest marketplace for Premium Gaming Keys.
-
-🔹 *Instant Delivery*
-🔹 *24/7 Automated Service*
-🔹 *Best Market Prices*
-
-Click below to explore our products!`;
-
-    ctx.reply(welcomeText, {
-        parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard([
-            [Markup.button.callback('• Purchase Key •', 'shop_menu')],
-            [Markup.button.callback('• Account •', 'acc_menu'), Markup.button.callback('• History •', 'hist_menu')],
-            [Markup.button.callback('• Deposit Fund (₹) •', 'dep_inr'), Markup.button.callback('• Deposit Fund ($) •', 'dep_usd')],
-            [Markup.button.callback('• Feedback •', 'feed_menu')]
-        ])
-    });
-});
-
 // Global Error Handler
 bot.catch((err, ctx) => {
     console.error(`❌ Error in ${ctx.updateType}:`, err);
 });
 
-// Launch Bot
 bot.launch()
     .then(() => console.log('✅ Bot is running...'))
     .catch((err) => {
         console.error('❌ Failed to launch:', err);
     });
 
-// Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
