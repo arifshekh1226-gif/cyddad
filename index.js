@@ -24,16 +24,21 @@ feedback.setup(bot);
 
 // --- FORCE JOIN MIDDLEWARE ---
 bot.use(async (ctx, next) => {
+    // Channel ID aur Link
     const channelId = '-1002940703518'; 
+    const channelLink = 'https://t.me/CY_SHOP_SALES';
+
     try {
-        if (ctx.from && !ctx.callbackQuery?.data?.includes('admin')) {
+        // Sirf un users ke liye jo channel ke admin nahi hain
+        if (ctx.from && !ctx.callbackQuery?.data?.startsWith('admin_')) {
             const chatMember = await ctx.telegram.getChatMember(channelId, ctx.from.id);
             const status = chatMember.status;
+
             if (status === 'left' || status === 'kicked') {
                 return ctx.reply('❌ *ACCESS DENIED*\n\nBot use karne ke liye pehle hamara channel join karein:', {
                     parse_mode: 'Markdown',
                     ...Markup.inlineKeyboard([
-                        [Markup.button.url('📢 Join Channel', 'https://t.me/CY_SHOP_SALES')],
+                        [Markup.button.url('📢 Join Channel', channelLink)],
                         [Markup.button.callback('🔄 Check Status', 'start')]
                     ])
                 });
@@ -41,7 +46,7 @@ bot.use(async (ctx, next) => {
         }
         return next();
     } catch (err) {
-        console.log('Channel check error:', err);
+        console.log('Channel check error (Bot shayad Admin nahi hai):', err);
         return next();
     }
 });
