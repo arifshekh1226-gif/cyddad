@@ -33,7 +33,7 @@ bot.use(async (ctx, next) => {
                 return ctx.reply('❌ *ACCESS DENIED*\n\nBot use karne ke liye pehle hamara channel join karein:', {
                     parse_mode: 'Markdown',
                     ...Markup.inlineKeyboard([
-                        [Markup.button.url('📢 Join Channel', 'https://t.me/c/2940703518/1')],
+                        [Markup.button.url('📢 Join Channel', 'https://t.me/CY_SHOP_SALES')],
                         [Markup.button.callback('🔄 Check Status', 'start')]
                     ])
                 });
