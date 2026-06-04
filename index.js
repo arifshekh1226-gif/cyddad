@@ -20,6 +20,8 @@ feedback.setup(bot);
 bot.action('main_menu', async (ctx) => {
   try {
     await ctx.answerCbQuery();
+    
+    // Yahan error handling add ki hai
     await ctx.editMessageText('🛒 *CY SHOP - MAIN MENU*\n\nWelcome back! Choose an option below to get started:', {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
@@ -30,7 +32,10 @@ bot.action('main_menu', async (ctx) => {
       ])
     });
   } catch (err) {
-    console.error(err);
+    // Agar error "no text to edit" hai, toh ignore karo, baaki errors print karo
+    if (err.description !== 'Bad Request: there is no text in the message to edit') {
+      console.error('Error in main_menu:', err);
+    }
   }
 });
 
