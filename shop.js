@@ -53,8 +53,6 @@ module.exports = {
 
         const keyRows = await doc.sheetsByTitle['Keys'].getRows();
         
-        // --- ROBUST MATCHING FIX ---
-        // Ye logic ab sheet ke product naam ko 'includes' se check karega
         const keyRow = keyRows.find(r => {
             const sheetProd = r.get('Product') ? r.get('Product').toString().trim() : "";
             return sheetProd.includes(product) && r.get('Status') === 'Available';
@@ -71,8 +69,9 @@ module.exports = {
         ctx.editMessageText(`✅ *SUCCESS!*\n\n🔑 Key: \`${keyRow.get('Key')}\`\n💰 Balance: ₹${user.get('Balance')}`);
 
         try {
-          const salesChannelId = '@CY_SHOP_SALES'; 
-          const salesMessage = `💼 *TRANSACTION PROOF*\n━━━━━━━━━━━━━━\n✅ *NEW SALE COMPLETED*\n\n👤 *Customer Details*\n• Name: ${ctx.from.first_name}\n• ID: \`${ctx.from.id}\`\n\n📦 *Order Details*\n• Game: ${product}\n• Duration: ${days} Days\n• Amount: ₹${price}\n• Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n━━━━━━━━━━━━━━\n🤖 *Powered by @CY_SHOP_BOT*`;
+          const salesChannelId = '-1002940703518'; 
+          // ID wali line yahan se hata di gayi hai
+          const salesMessage = `💼 *TRANSACTION PROOF*\n━━━━━━━━━━━━━━\n✅ *NEW SALE COMPLETED*\n\n👤 *Customer Details*\n• Name: ${ctx.from.first_name}\n\n📦 *Order Details*\n• Game: ${product}\n• Duration: ${days} Days\n• Amount: ₹${price}\n• Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n━━━━━━━━━━━━━━\n🤖 *Powered by @CY_SHOP_BOT*`;
           await bot.telegram.sendMessage(salesChannelId, salesMessage, { parse_mode: 'Markdown' });
         } catch (e) { console.log('Channel post error:', e); }
 
