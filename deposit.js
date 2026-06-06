@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 module.exports = {
   setup: (bot) => {
     
-    // 1. INR DEPOSIT (UPI)
+    // 1. INR Deposit (UPI) - Hinglish
     bot.action('dep_inr', async (ctx) => {
       await ctx.answerCbQuery();
       const upiID = 'xejaj@fam';
@@ -13,7 +13,7 @@ module.exports = {
       await ctx.editMessageMedia({
         type: 'photo',
         media: { source: qrBuffer },
-        caption: `💰 *INR DEPOSIT (UPI)*\n\n*(Click ID below to copy)*\n\`${upiID}\`\n\n*Instructions:*\n1. Upar di gayi ID par click karke copy karein.\n2. Payment poori karke screenshot yahan bhejein.\n3. Screenshot ke caption mein "INR" zaroor likhein.`
+        caption: `💰 *INR DEPOSIT (UPI)*\n\nUPI ID: \`${upiID}\`\n*(ID par click karke copy karein)*\n\n*Instructions:*\n1. Upar di gayi UPI ID copy karein.\n2. Payment poori karke screenshot yahan bhejein.\n3. Screenshot ke caption mein "INR" zaroor likhein.\n\nType /start to restart.`
       }, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
@@ -22,7 +22,7 @@ module.exports = {
       });
     });
 
-    // 2. USDT DEPOSIT (TRC20)
+    // 2. USDT Deposit (TRC20) - English
     bot.action('dep_usd', async (ctx) => {
       await ctx.answerCbQuery();
       const address = 'TZ6gGNHMi8u8ZGkhG8c8Uwr4CSf58qFWDC';
@@ -31,7 +31,7 @@ module.exports = {
       await ctx.editMessageMedia({
         type: 'photo',
         media: { source: qrBuffer },
-        caption: `💰 *USDT DEPOSIT (TRC20)*\n\n*(Click Address below to copy)*\n\`${address}\`\n\n*Instructions:*\n1. Upar diya gaya address click karke copy karein.\n2. Binance/Wallet mein TRC20 network use karein.\n3. Screenshot ke caption mein "USDT" likh kar yahan bhejein.`
+        caption: `💰 *USDT DEPOSIT (TRC20)*\n\nAddress: \`${address}\`\n*(Click address to copy)*\n\n*Instructions:*\n1. Copy the address above.\n2. Send USDT using TRC20 network only.\n3. Send the payment screenshot with "USDT" in the caption.\n\nType /start to restart.`
       }, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
