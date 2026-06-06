@@ -13,7 +13,7 @@ module.exports = {
       await ctx.editMessageMedia({
         type: 'photo',
         media: { source: qrBuffer },
-        caption: `💰 *INR DEPOSIT (UPI)*\n\nUPI ID: \`${upiID}\`\n*(ID par click karke copy karein)*\n\n*Instructions:*\n1. Upar di gayi UPI ID copy karein.\n2. Payment poori karke screenshot yahan bhejein.\n3. Screenshot ke caption mein "INR" zaroor likhein.\n\nType /start to restart.`
+        caption: `💰 *INR DEPOSIT (UPI)*\n\nUPI ID: \`${upiID}\`\n*(ID par click karke copy karein)*\n\n*Instructions:*\n1. Upar di gayi UPI ID copy karein.\n2. Payment poori karke screenshot yahan bhejein.\n3. Screenshot ke caption mein "INR" likhna na bhoolein.`
       }, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
@@ -31,7 +31,7 @@ module.exports = {
       await ctx.editMessageMedia({
         type: 'photo',
         media: { source: qrBuffer },
-        caption: `💰 *USDT DEPOSIT (TRC20)*\n\nAddress: \`${address}\`\n*(Click address to copy)*\n\n*Instructions:*\n1. Copy the address above.\n2. Send USDT using TRC20 network only.\n3. Send the payment screenshot with "USDT" in the caption.\n\nType /start to restart.`
+        caption: `💰 *USDT DEPOSIT (TRC20)*\n\nAddress: \`${address}\`\n*(Click address to copy)*\n\n*Instructions:*\n1. Copy the address above.\n2. Send USDT using TRC20 network only.\n3. Send the payment screenshot with "USDT" in the caption.`
       }, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
