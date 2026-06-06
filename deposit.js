@@ -7,7 +7,7 @@ module.exports = {
     // 1. INR Deposit (UPI) - Hinglish
     bot.action('dep_inr', async (ctx) => {
       await ctx.answerCbQuery();
-      const upiID = 'xejaj@fam';
+      const upiID = xejaj@fam;
       const qrBuffer = await QRCode.toBuffer(`upi://pay?pa=${upiID}&pn=CY_SHOP&cu=INR`, { errorCorrectionLevel: 'H', margin: 2 });
 
       await ctx.editMessageMedia({
@@ -25,7 +25,7 @@ module.exports = {
     // 2. USDT Deposit (TRC20) - English
     bot.action('dep_usd', async (ctx) => {
       await ctx.answerCbQuery();
-      const address = 'TZ6gGNHMi8u8ZGkhG8c8Uwr4CSf58qFWDC';
+      const address = TZ6gGNHMi8u8ZGkhG8c8Uwr4CSf58qFWDC;
       const qrBuffer = await QRCode.toBuffer(address, { errorCorrectionLevel: 'H', margin: 2 });
 
       await ctx.editMessageMedia({
