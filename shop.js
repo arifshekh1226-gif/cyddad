@@ -52,7 +52,7 @@ module.exports = {
         const user = userRows.find(r => r.get('TelegramID') == ctx.from.id);
         if (!user || parseInt(user.get('Balance')) < price) return ctx.reply('❌ Insufficient balance!');
 
-        // 3. FIX: Product AND Duration match filter
+        // 3. Product AND Duration match filter
         const keyRows = await doc.sheetsByTitle['Keys'].getRows();
         const keyRow = keyRows.find(r => 
             r.get('Product')?.trim() === product && 
@@ -72,12 +72,12 @@ module.exports = {
 
         ctx.editMessageText(`✅ *SUCCESS!*\n\n🔑 Key: \`${keyRow.get('Key')}\`\n💰 Balance: ₹${user.get('Balance')}`);
 
-        // 5. Sales notification
+        // 5. Original Sales notification format
         try {
           const salesChannelId = '-1002940703518'; 
-          const salesMessage = `💼 *NEW SALE*\n━━━━━━━━━━━━━━\n👤 User: ${ctx.from.first_name}\n📦 Item: ${product} (${days} Days)\n💰 Amount: ₹${price}\n━━━━━━━━━━━━━━`;
+          const salesMessage = `💼 *TRANSACTION PROOF*\n━━━━━━━━━━━━━━\n✅ *NEW SALE COMPLETED*\n\n👤 *Customer Details*\n• Name: ${ctx.from.first_name}\n\n📦 *Order Details*\n• Game: ${product}\n• Duration: ${days} Days\n• Amount: ₹${price}\n• Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })}\n━━━━━━━━━━━━━━\n🤖 *Powered by @CY_SHOP_BOT*`;
           await bot.telegram.sendMessage(salesChannelId, salesMessage, { parse_mode: 'Markdown' });
-        } catch (e) { console.log('Channel error:', e); }
+        } catch (e) { console.log('Channel post error:', e); }
 
       } catch (err) { 
         ctx.reply('❌ Error: ' + err.message);
