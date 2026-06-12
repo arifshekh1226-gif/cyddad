@@ -42,40 +42,47 @@ module.exports = {
 
       try {
         const doc = await getDoc();
+        // 1. Price fetch karo
         const priceRows = await doc.sheetsByTitle['Products'].getRows();
         const priceRow = priceRows.find(r => r.get('Product') === product && r.get('Days') == days);
         const price = parseInt(priceRow.get('Price'));
 
+        // 2. User balance check
         const userRows = await doc.sheetsByTitle['Users'].getRows();
         const user = userRows.find(r => r.get('TelegramID') == ctx.from.id);
-        
         if (!user || parseInt(user.get('Balance')) < price) return ctx.reply('❌ Insufficient balance!');
 
+        // 3. FIX: Product AND Duration match filter
         const keyRows = await doc.sheetsByTitle['Keys'].getRows();
-        
-        const keyRow = keyRows.find(r => {
-            const sheetProd = r.get('Product') ? r.get('Product').toString().trim() : "";
-            return sheetProd.includes(product) && r.get('Status') === 'Available';
-        });
+        const keyRow = keyRows.find(r => 
+            r.get('Product')?.trim() === product && 
+            r.get('Duration')?.toString().trim() === days.toString() && 
+            r.get('Status') === 'Available'
+        );
 
-        if (!keyRow) return ctx.reply('❌ Stock khatam ho gaya hai! (No key found for ' + product + ')');
+        if (!keyRow) return ctx.reply(`❌ Stock khatam hai! (No key found for ${product} - ${days} Days)`);
 
+        // 4. Update Balance & Key Status
         user.set('Balance', parseInt(user.get('Balance')) - price);
         await user.save();
+        
         keyRow.set('Status', 'Used');
         keyRow.set('UsedBy', ctx.from.id);
         await keyRow.save();
 
         ctx.editMessageText(`✅ *SUCCESS!*\n\n🔑 Key: \`${keyRow.get('Key')}\`\n💰 Balance: ₹${user.get('Balance')}`);
 
+        // 5. Sales notification
         try {
           const salesChannelId = '-1002940703518'; 
-          // ID wali line yahan se hata di gayi hai
-          const salesMessage = `💼 *TRANSACTION PROOF*\n━━━━━━━━━━━━━━\n✅ *NEW SALE COMPLETED*\n\n👤 *Customer Details*\n• Name: ${ctx.from.first_name}\n\n📦 *Order Details*\n• Game: ${product}\n• Duration: ${days} Days\n• Amount: ₹${price}\n• Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n━━━━━━━━━━━━━━\n🤖 *Powered by @CY_SHOP_BOT*`;
+          const salesMessage = `💼 *NEW SALE*\n━━━━━━━━━━━━━━\n👤 User: ${ctx.from.first_name}\n📦 Item: ${product} (${days} Days)\n💰 Amount: ₹${price}\n━━━━━━━━━━━━━━`;
           await bot.telegram.sendMessage(salesChannelId, salesMessage, { parse_mode: 'Markdown' });
-        } catch (e) { console.log('Channel post error:', e); }
+        } catch (e) { console.log('Channel error:', e); }
 
-      } catch (err) { ctx.reply('❌ Error: ' + err.message); }
+      } catch (err) { 
+        ctx.reply('❌ Error: ' + err.message);
+        console.error(err);
+      }
     });
   }
 };
